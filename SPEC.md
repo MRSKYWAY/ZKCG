@@ -1,11 +1,12 @@
 # Protocol Specification — ZK-Verified Computation Gateway (ZKCG)
 
-This document specifies the core protocol, state machine, proof interfaces, and transition rules of the ZK-Verified Computation Gateway (ZKCG).
+This document specifies the core protocol, state machine, proof interfaces, and transition rules of the **ZK-Verified Computation Gateway (ZKCG)**.
 
 It is designed to be:
-- **Precise** — deterministic in behavior
-- **Auditable** — comprehensible by other engineers
-- **Robust** — covers edge cases and error conditions
+
+- **Precise** — deterministic in behavior  
+- **Auditable** — comprehensible by other engineers  
+- **Robust** — covers edge cases and error conditions  
 
 ---
 
@@ -20,41 +21,48 @@ It is designed to be:
 7. Policy Constraints  
 8. Verifier Semantics  
 9. Error Codes & Rejections  
-10. Extensions (Phase 2)
+10. Extensions (Phase 2)  
 
 ---
 
 ## 1. Protocol Overview
 
-ZKCG is a verifier protocol that enables clients (provers) to submit zero-knowledge proofs that a computation was executed correctly and adheres to specific policy constraints. The verifier node verifies the proof and updates the protocol state when all checks pass.
+ZKCG is a verifier protocol that enables clients (provers) to submit zero-knowledge proofs attesting that a computation was executed correctly and adheres to specific policy constraints.
+
+A verifier node validates the proof and updates the protocol state when all checks pass.
 
 ---
 
 ## 2. Actors
 
-- **Prover (Client)**: Executes computation off-chain and produces a ZK proof √  
-- **Verifier Node**: Validates proofs, enforces policies, updates state √  
-- **Observer**: Optional read-only entity monitoring public state √
+- **Prover (Client)** — Executes computation off-chain and produces a ZK proof  
+- **Verifier Node** — Validates proofs, enforces policies, updates state  
+- **Observer** — Optional read-only entity monitoring public state  
 
-All actors may be real machines in distributed systems.
+All actors may be real machines in a distributed system.
 
 ---
 
 ## 3. Core Concepts
 
 ### 3.1 Proof
-A zero-knowledge proof that attests to the correctness of a computation with respect to given public inputs.
+
+A zero-knowledge proof attesting to the correctness of a computation with respect to given public inputs.
 
 ### 3.2 Public Inputs
-Data that is included in each proof and required for verification, such as:
-- protocol version
-- threshold values
-- previous state commitment
+
+Data included in each proof and required for verification, such as:
+
+- protocol version  
+- threshold values  
+- previous state commitment  
 
 ### 3.3 Private Inputs
+
 Data used by the prover but not revealed to the verifier.
 
 ### 3.4 Commitment
+
 A cryptographic commitment (e.g., Merkle root) representing the post-computation state.
 
 ---
@@ -70,16 +78,18 @@ struct ProtocolState {
     epoch: u64,
 }
 ```
-state_root: Merkle commitment representing current state √
 
-nonce: strictly increasing counter √
+- `state_root`: Merkle commitment representing current state  
+- `nonce`: Strictly increasing counter  
+- `epoch`: Version or generation identifier  
 
-epoch: version or generation identifier √
 ---
-##5. Message Formats
-###5.1 Proof Submission
-json
-Copy code
+
+## 5. Message Formats
+
+### 5.1 Proof Submission
+
+```json
 {
   "proof": "<base64-encoded proof>",
   "public_inputs": {
@@ -89,80 +99,94 @@ Copy code
   },
   "new_state_commitment": "<hash>"
 }
+```
+
 ---
-##6. Valid State Transition Rules
-A transition is valid if ALL of the following hold:
 
-public_inputs.old_state_root == current state_root
+## 6. Valid State Transition Rules
 
-public_inputs.nonce == current nonce + 1
+A transition is valid if **all** of the following hold:
 
-The ZK proof is valid (verifier confirms)
-
-The computed result satisfies policy constraints
-
-new_state_commitment correctly reflects the committed state after the result
+1. `public_inputs.old_state_root == current.state_root`  
+2. `public_inputs.nonce == current.nonce + 1`  
+3. The ZK proof is valid  
+4. The computed result satisfies all policy constraints  
+5. `new_state_commitment` correctly reflects the post-computation state  
 
 If any rule fails, the submission is rejected.
+
 ---
-##7. Policy Constraints
-For Phase 1, we enforce a private risk or score check:
 
-Constraint: computed_score <= threshold
+## 7. Policy Constraints
 
-This constraint must be embedded in the proof.
+### Phase 1 Constraint
+
+A private risk or score check is enforced:
+
+```
+computed_score ≤ threshold
+```
+
+This constraint **must be embedded in the proof** and cannot be bypassed by the prover.
+
 ---
-##8. Verifier Semantics
-Upon receiving a proof submission:
 
-Parse message
+## 8. Verifier Semantics
 
-Validate message format
+Upon receiving a proof submission, the verifier performs the following steps:
 
-Check that old_state_root and nonce match current state
+1. Parse the message  
+2. Validate message format  
+3. Check that `old_state_root` and `nonce` match current state  
+4. Verify the ZK proof using the provided public inputs  
+5. Enforce policy constraints  
+6. Compute and persist the new state  
+7. Emit an event or log entry  
 
-Verify the ZK proof with the given public_inputs
+All steps are deterministic.
 
-Enforce policy constraints
-
-Compute and persist new state
-
-Emit event/log
 ---
-##9. Error Codes & Rejections
-Errors are defined as:
 
-Code	Meaning
-ERR_INVALID_FORMAT	Bad message structure
-ERR_STATE_MISMATCH	Old state doesn’t match current
-ERR_NONCE_INVALID	Invalid nonce
-ERR_PROOF_INVALID	Proof verification failed
-ERR_POLICY_VIOLATION	Policy constraint not satisfied
-ERR_COMMITMENT_MISMATCH	New commitment doesn’t match
+## 9. Error Codes & Rejections
 
-Each error should be logged/returned to the client.
+| Code | Meaning |
+|----|----|
+| `ERR_INVALID_FORMAT` | Bad message structure |
+| `ERR_STATE_MISMATCH` | Old state does not match current |
+| `ERR_NONCE_INVALID` | Invalid nonce |
+| `ERR_PROOF_INVALID` | Proof verification failed |
+| `ERR_POLICY_VIOLATION` | Policy constraint not satisfied |
+| `ERR_COMMITMENT_MISMATCH` | New commitment does not match |
+
+Each error must be returned to the client and logged by the verifier.
+
 ---
-##10. Extensions (Phase 2)
-Pluggable Proof Backends
-In Phase 2, proofs may be:
 
-circuit proofs (e.g., Halo2)
+## 10. Extensions (Phase 2)
 
-zkVM proofs (e.g., RISC Zero / SP1)
+### 10.1 Pluggable Proof Backends
 
-The verifier interface remains the same; only the backend implementation differs.
+ZKCG supports multiple proof systems:
 
-Versioning
-To support upgrades, the epoch field may be used to route verification logic.
+- Circuit-based proofs (e.g., Halo2)  
+- zkVM proofs (e.g., RISC Zero, SP1)  
 
-Provenance Statement
+The verifier interface remains stable; only backend verification logic differs.
+
+---
+
+### 10.2 Versioning
+
+The `epoch` field enables protocol upgrades and routes verification logic to the correct version.
+
+---
+
+## Provenance Statement
+
 This specification is designed to be:
 
-unambiguous
+- Unambiguous  
+- Machine-verifiable  
+- Extensible  
 
-machine-verifiable
-
-extensible
-
-All state transforms and policy filters are deterministic.
----
+All state transitions and policy checks are deterministic.
