@@ -75,7 +75,7 @@ state_root: Merkle commitment representing current state √
 nonce: strictly increasing counter √
 
 epoch: version or generation identifier √
-
+---
 ##5. Message Formats
 ###5.1 Proof Submission
 json
@@ -89,6 +89,7 @@ Copy code
   },
   "new_state_commitment": "<hash>"
 }
+---
 ##6. Valid State Transition Rules
 A transition is valid if ALL of the following hold:
 
@@ -103,14 +104,14 @@ The computed result satisfies policy constraints
 new_state_commitment correctly reflects the committed state after the result
 
 If any rule fails, the submission is rejected.
-
+---
 ##7. Policy Constraints
 For Phase 1, we enforce a private risk or score check:
 
 Constraint: computed_score <= threshold
 
 This constraint must be embedded in the proof.
-
+---
 ##8. Verifier Semantics
 Upon receiving a proof submission:
 
@@ -127,7 +128,7 @@ Enforce policy constraints
 Compute and persist new state
 
 Emit event/log
-
+---
 ##9. Error Codes & Rejections
 Errors are defined as:
 
@@ -140,7 +141,7 @@ ERR_POLICY_VIOLATION	Policy constraint not satisfied
 ERR_COMMITMENT_MISMATCH	New commitment doesn’t match
 
 Each error should be logged/returned to the client.
-
+---
 ##10. Extensions (Phase 2)
 Pluggable Proof Backends
 In Phase 2, proofs may be:
@@ -164,3 +165,4 @@ machine-verifiable
 extensible
 
 All state transforms and policy filters are deterministic.
+---
