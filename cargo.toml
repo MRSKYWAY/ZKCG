@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "verifier",
+    "common",
+    "api"
+]
+resolver = "2"
