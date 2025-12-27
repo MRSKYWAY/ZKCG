@@ -76,8 +76,8 @@ nonce: strictly increasing counter √
 
 epoch: version or generation identifier √
 
-5. Message Formats
-5.1 Proof Submission
+##5. Message Formats
+###5.1 Proof Submission
 json
 Copy code
 {
@@ -89,7 +89,7 @@ Copy code
   },
   "new_state_commitment": "<hash>"
 }
-6. Valid State Transition Rules
+##6. Valid State Transition Rules
 A transition is valid if ALL of the following hold:
 
 public_inputs.old_state_root == current state_root
@@ -104,14 +104,14 @@ new_state_commitment correctly reflects the committed state after the result
 
 If any rule fails, the submission is rejected.
 
-7. Policy Constraints
+##7. Policy Constraints
 For Phase 1, we enforce a private risk or score check:
 
 Constraint: computed_score <= threshold
 
 This constraint must be embedded in the proof.
 
-8. Verifier Semantics
+##8. Verifier Semantics
 Upon receiving a proof submission:
 
 Parse message
@@ -128,7 +128,7 @@ Compute and persist new state
 
 Emit event/log
 
-9. Error Codes & Rejections
+##9. Error Codes & Rejections
 Errors are defined as:
 
 Code	Meaning
@@ -141,7 +141,7 @@ ERR_COMMITMENT_MISMATCH	New commitment doesn’t match
 
 Each error should be logged/returned to the client.
 
-10. Extensions (Phase 2)
+##10. Extensions (Phase 2)
 Pluggable Proof Backends
 In Phase 2, proofs may be:
 
