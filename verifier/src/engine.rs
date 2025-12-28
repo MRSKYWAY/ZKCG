@@ -3,16 +3,20 @@ use common::{
     state::ProtocolState,
     types::Commitment,
 };
-
+use crate::backend::ProofBackend;
 use crate::{policy, proof};
 
 pub struct VerifierEngine {
     state: ProtocolState,
+    backend: Box<dyn ProofBackend>,
 }
 
 impl VerifierEngine {
-    pub fn new(state: ProtocolState) -> Self {
-        Self { state }
+    pub fn new(
+        state: ProtocolState,
+        backend: Box<dyn ProofBackend>,
+    ) -> Self {
+        Self { state, backend }
     }
     
     pub fn state(&self) -> &ProtocolState {
@@ -37,7 +41,9 @@ impl VerifierEngine {
         }
 
         // 3. Verify proof
-        proof::verify(proof_bytes, &public_inputs)?;
+        self.backend.verify(proof_bytes, &public_inputs)?;
+
+
 
         // 4. Enforce policy
         policy::enforce(&public_inputs)?;

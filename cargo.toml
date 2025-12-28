@@ -2,6 +2,9 @@
 members = [
     "verifier",
     "common",
-    "api"
+    "api",
+    "circuits",
+    "zkvm/guest",
+    "zkvm/host"
 ]
 resolver = "2"
