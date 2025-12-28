@@ -9,7 +9,6 @@ common = { path = "../common" }
 halo2_proofs = { version = "0.3", optional = true }
 ff = { version = "0.13", optional = true }
 circuits = { path = "../circuits", optional = true }
-zkcg-zkvm-guest = { path = "../zkvm/guest", optional = true }
 zkcg-zkvm-host = { path = "../zkvm/host", optional = true }
 
 [dev-dependencies]
@@ -21,4 +20,4 @@ zk-halo2 = [
     "ff",
     "circuits",
 ]
-zk-vm = ["zkcg-zkvm-guest", "zkcg-zkvm-host"]
+zk-vm = ["zkcg-zkvm-host"]

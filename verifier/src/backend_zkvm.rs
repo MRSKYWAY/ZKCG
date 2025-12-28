@@ -3,6 +3,8 @@ use crate::{backend::ProofBackend, engine::PublicInputs};
 
 use risc0_zkvm::Receipt;
 use serde::Deserialize;
+use methods::ID;
+
 
 #[derive(Deserialize)]
 struct ZkVmOutput {
@@ -21,8 +23,7 @@ impl ProofBackend for ZkVmBackend {
             bincode::deserialize(proof_bytes)
                 .map_err(|_| ProtocolError::InvalidProof)?;
 
-        receipt
-            .verify(zkcg_zkvm_guest::ID)
+        receipt.verify(methods::ID)
             .map_err(|_| ProtocolError::InvalidProof)?;
 
         let output: ZkVmOutput =

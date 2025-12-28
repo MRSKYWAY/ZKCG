@@ -1,17 +1,24 @@
+mod methods {
+    include!(concat!(env!("OUT_DIR"), "/methods.rs"));
+}
+
 use risc0_zkvm::{ExecutorEnv, default_prover};
-use zkcg_zkvm_guest::{ZkVmInput, ZkVmOutput};
+use zkcg_zkvm_guest::ZkVmInput;
+use methods::{ELF, ID};
 
 pub fn prove(score: u64, threshold: u64) -> Vec<u8> {
-    let env = ExecutorEnv::builder()
+    let mut builder = ExecutorEnv::builder();
+
+    builder
         .write(&ZkVmInput { score, threshold })
-        .build()
-        .unwrap();
+        .expect("failed to write zkVM input");
+
+    let env = builder.build().expect("failed to build executor env");
 
     let prover = default_prover();
-
     let receipt = prover
-        .prove(env, zkcg_zkvm_guest::ELF)
-        .unwrap();
+        .prove(env, ELF)
+        .expect("zkVM proof failed");
 
-    bincode::serialize(&receipt).unwrap()
+    bincode::serialize(&receipt).expect("failed to serialize receipt")
 }

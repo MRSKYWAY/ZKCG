@@ -2,9 +2,12 @@
 name = "zkcg-zkvm-host"
 version = "0.1.0"
 edition = "2024"
+build = "build.rs"
+
+[build-dependencies]
+risc0-build = "0.21"
 
 [dependencies]
 risc0-zkvm = "0.21"
 serde = { version = "1", features = ["derive"] }
 bincode = "1"
-zkcg-zkvm-guest = { path = "../guest" }
