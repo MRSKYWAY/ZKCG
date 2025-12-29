@@ -8,6 +8,12 @@ build = "build.rs"
 risc0-build = "0.21"
 
 [dependencies]
+common = { path = "../../common" }
 risc0-zkvm = "0.21"
 serde = { version = "1", features = ["derive"] }
 bincode = "1"
+
+[features]
+default = []
+zk-vm = []
+

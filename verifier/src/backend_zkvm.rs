@@ -1,9 +1,13 @@
+#![cfg(feature = "zk-vm")]
+
 use common::errors::ProtocolError;
 use crate::{backend::ProofBackend, engine::PublicInputs};
 
 use risc0_zkvm::Receipt;
 use serde::Deserialize;
-use methods::ID;
+
+use zkcg_zkvm_host::method_id;
+
 
 
 #[derive(Deserialize)]
@@ -23,7 +27,7 @@ impl ProofBackend for ZkVmBackend {
             bincode::deserialize(proof_bytes)
                 .map_err(|_| ProtocolError::InvalidProof)?;
 
-        receipt.verify(methods::ID)
+        receipt.verify(method_id())
             .map_err(|_| ProtocolError::InvalidProof)?;
 
         let output: ZkVmOutput =

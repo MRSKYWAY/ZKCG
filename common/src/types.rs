@@ -4,3 +4,9 @@ pub type Hash = [u8; 32];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Commitment(pub Hash);
+
+#[derive(Serialize, Deserialize)]
+pub struct ZkVmInput {
+    pub score: u64,
+    pub threshold: u64,
+}

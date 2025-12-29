@@ -3,12 +3,7 @@
 
 use risc0_zkvm::guest::env;
 use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize)]
-pub struct ZkVmInput {
-    pub score: u64,
-    pub threshold: u64,
-}
+use common::types::ZkVmInput;
 
 #[derive(Serialize, Deserialize)]
 pub struct ZkVmOutput {
