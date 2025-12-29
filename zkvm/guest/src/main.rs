@@ -14,7 +14,7 @@ risc0_zkvm::guest::entry!(main);
 
 fn main() {
     let input: ZkVmInput = env::read();
-
+ 
     // 🔐 This is the cryptographic rule
     assert!(
         input.score <= input.threshold,
