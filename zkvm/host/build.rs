@@ -7,15 +7,7 @@ fn main() {
     }
 
     // RISC0 0.21 expects a map of guest-name -> GuestOptions
-    let mut guests = HashMap::new();
+   
 
-    guests.insert(
-        "zkcg-zkvm-guest",
-        risc0_build::GuestOptions {
-            features: vec![],
-            use_docker: None,
-        },
-    );
-
-    risc0_build::embed_methods_with_options(guests);
+    risc0_build::embed_methods();
 }

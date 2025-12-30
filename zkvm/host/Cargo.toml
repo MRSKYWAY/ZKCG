@@ -6,12 +6,13 @@ build = "build.rs"
 
 [dependencies]
 common = { path = "../../common" }
-risc0-zkvm = "0.21"
+risc0-zkp = "3"
+risc0-core = "3"
 serde = { version = "1", features = ["derive"] }
 bincode = "1"
 
 [build-dependencies]
-risc0-build = "0.21"
+risc0-build = "3"
 
 [features]
 default = []

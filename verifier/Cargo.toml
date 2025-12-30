@@ -10,9 +10,10 @@ halo2_proofs = { version = "0.3", optional = true }
 ff = { version = "0.13", optional = true }
 circuits = { path = "../circuits", optional = true }
 zkcg-zkvm-host = { path = "../zkvm/host", optional = true, features = ["zk-vm"] }
-risc0-zkvm = { version = "0.21", optional = true }
 serde = { version = "1", features = ["derive"], optional = true }
 bincode = { version = "1", optional = true }
+risc0-zkp = "3"
+risc0-core = "3"
 
 [dev-dependencies]
 rand = "0.8"
@@ -24,7 +25,6 @@ zk-halo2 = [
     "circuits",
 ]
 zk-vm = [
-  "risc0-zkvm",
   "serde",
   "bincode",
   "zkcg-zkvm-host"

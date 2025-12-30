@@ -6,5 +6,5 @@ members = [
     "circuits",
     "zkvm/guest",
     "zkvm/host"
-]
+, "zkvm/prover"]
 resolver = "2"
