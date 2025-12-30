@@ -18,3 +18,5 @@ risc0-build = "3"
 default = []
 zk-vm = []
 
+[package.metadata.risc0]
+methods = ["../guest"]

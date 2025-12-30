@@ -6,11 +6,12 @@ edition = "2021"
 [[bin]]
 name = "zkcg_zkvm_guest"
 path = "src/main.rs"
+test = false
 
 [dependencies]
 risc0-zkvm = { version = "3", default-features = false }
-serde = { version = "1", features = ["derive"] }
-common = { path = "../../common" }
+serde = { version = "1", default-features = false, features = ["derive"] }
+common = { path = "../../common", default-features = false }
 
 [package.metadata.risc0]
 methods = ["guest"]

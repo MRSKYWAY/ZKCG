@@ -3,6 +3,10 @@ name = "common"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["std"]
+std = ["thiserror"]
+
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-thiserror = "1.0"
+serde = { version = "1.0", default-features = false, features = ["derive"] }
+thiserror = { version = "1.0", optional = true }

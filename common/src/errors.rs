@@ -1,22 +1,24 @@
+#[cfg(feature = "std")]
 use thiserror::Error;
 
-#[derive(Debug, Error)]
+#[derive(Debug)]
+#[cfg_attr(feature = "std", derive(Error))]
 pub enum ProtocolError {
-    #[error("invalid message format")]
+    #[cfg_attr(feature = "std", error("invalid message format"))]
     InvalidFormat,
 
-    #[error("state mismatch")]
+    #[cfg_attr(feature = "std", error("state mismatch"))]
     StateMismatch,
 
-    #[error("invalid nonce")]
+    #[cfg_attr(feature = "std", error("invalid nonce"))]
     InvalidNonce,
 
-    #[error("proof verification failed")]
+    #[cfg_attr(feature = "std", error("proof verification failed"))]
     InvalidProof,
 
-    #[error("policy violation")]
+    #[cfg_attr(feature = "std", error("policy violation"))]
     PolicyViolation,
 
-    #[error("commitment mismatch")]
+    #[cfg_attr(feature = "std", error("commitment mismatch"))]
     CommitmentMismatch,
 }

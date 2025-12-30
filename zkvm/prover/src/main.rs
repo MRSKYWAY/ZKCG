@@ -1,5 +1,5 @@
 use risc0_zkvm::{ExecutorEnv, default_prover};
-
+use risc0_binfmt::Digestible;
 use common::types::ZkVmInput;
 use zkcg_zkvm_host::{method_id, ZkVmProof};
 
@@ -16,16 +16,17 @@ fn main() {
 
     let env = builder.build().expect("failed to build executor env");
 
-    // 2️⃣ Execute guest program
-    let receipt = default_prover()
-        .prove(env, zkcg_zkvm_host::ELF)
-        .expect("zkVM execution failed");
+    let prove_info = default_prover()
+    .prove(env, zkcg_zkvm_host::elf())
+    .expect("zkVM execution failed");
 
-    // 3️⃣ Produce opaque proof envelope
+    let receipt = prove_info.receipt;
+
     let proof = ZkVmProof {
-        method_id: receipt.method_id,
-        journal_digest: receipt.journal.digest(),
+        method_id: zkcg_zkvm_host::method_id(),
+        journal_digest: receipt.journal.digest::<risc0_zkvm::sha::Impl>(),
     };
+
 
     // 4️⃣ Serialize proof
     let bytes = bincode::serialize(&proof)

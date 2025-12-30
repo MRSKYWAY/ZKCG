@@ -28,7 +28,7 @@ impl ProofBackend for ZkVmBackend {
                 .map_err(|_| ProtocolError::InvalidProof)?;
 
         // 2️⃣ Verify method identity
-        if proof.method_id != *method_id() {
+        if proof.method_id != method_id() {
             return Err(ProtocolError::InvalidProof);
         }
 
