@@ -102,3 +102,30 @@ impl<F: Field> Circuit<F> for ScoreCircuit<F> {
 
 
 }
+
+use halo2_proofs::{
+    plonk::{keygen_vk, Circuit},
+    poly::kzg::commitment::ParamsKZG,
+};
+use halo2curves::bn256::Bn256;
+use rand::thread_rng;
+
+use crate::Halo2Artifacts;
+
+impl ScoreCircuit {
+    pub fn verifier_artifacts() -> Halo2Artifacts {
+        let k = 10;
+        let params = ParamsKZG::<Bn256>::setup(k, thread_rng());
+
+        let empty = ScoreCircuit {
+            score: 0,
+            threshold: 0,
+        };
+
+        let vk = keygen_vk(&params, &empty)
+            .expect("failed to generate verifying key");
+
+        Halo2Artifacts { params, vk }
+    }
+}
+

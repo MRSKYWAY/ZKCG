@@ -14,6 +14,7 @@ serde = { version = "1", features = ["derive"], optional = true }
 bincode = { version = "1", optional = true }
 risc0-zkp = "3"
 risc0-core = "3"
+halo2curves = "0.6"
 
 [dev-dependencies]
 rand = "0.8"
