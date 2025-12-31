@@ -17,10 +17,12 @@ pub enum ZkVmProverError {
     ExecutionFailed,
 }
 
-pub fn prove(score: u64, threshold: u64) -> Result<Vec<u8>, ZkVmProverError> {
+pub fn prove(score: u64, threshold: u64, old_state_root: [u8; 32],
+    nonce: u64) -> Result<Vec<u8>, ZkVmProverError> {
     let result =std::panic::catch_unwind(|| {let mut builder = ExecutorEnv::builder();
             builder
-                .write(&ZkVmInput { score, threshold })
+                .write(&ZkVmInput { score, threshold, old_state_root,
+                nonce })
                 .expect("failed to write zkVM input");
 
             let env = builder.build().expect("failed to build executor env");

@@ -14,10 +14,17 @@ use zkcg_zkvm_host::{prove, ZkVmProverError};
 fn commitment() -> Commitment {
     Commitment([42u8; 32])
 }
-
+fn valid_inputs() -> PublicInputs {
+    PublicInputs {
+        threshold: 10,
+        old_state_root: [9u8; 32],
+        nonce: 7,
+    }
+}
 #[test]
 fn zkvm_valid_transition_succeeds() {
-    let proof = prove(5, 10).expect("valid proof");
+    let mut inputs = valid_inputs();
+    let proof = prove(5, 10, inputs.old_state_root, inputs.nonce).expect("valid proof");
 
     let state = ProtocolState::genesis();
     let mut engine = VerifierEngine::new(
@@ -42,7 +49,8 @@ fn zkvm_valid_transition_succeeds() {
 
 #[test]
 fn zkvm_policy_violation_is_rejected() {
-    let result = prove(20, 10);
+    let mut inputs = valid_inputs();
+    let result = prove(20, 10, inputs.old_state_root, inputs.nonce);
 
     assert!(matches!(
         result,
@@ -52,7 +60,8 @@ fn zkvm_policy_violation_is_rejected() {
 
 #[test]
 fn zkvm_tampered_proof_is_rejected() {
-    let mut proof = prove(5, 10).unwrap();
+    let mut inputs = valid_inputs();
+    let mut proof = prove(5, 10, inputs.old_state_root, inputs.nonce).unwrap();
 
     proof[0] ^= 0xFF; // corrupt method id
 
@@ -102,6 +111,7 @@ fn zkvm_empty_proof_is_rejected() {
 
 #[test]
 fn zkvm_overflow_inputs_rejected() {
-    let result = prove(u64::MAX, u64::MAX - 1);
+    let mut inputs = valid_inputs();
+    let result = prove(u64::MAX, u64::MAX - 1, inputs.old_state_root, inputs.nonce);
     assert!(result.is_err());
 }

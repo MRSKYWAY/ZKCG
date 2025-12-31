@@ -23,6 +23,7 @@ mod tests_halo2;
 
 #[cfg(all(test, feature = "zk-vm"))]
 mod tests_zkvm;
+mod tests_zkvm_journal;
 
 #[cfg(all(feature = "zk-halo2", feature = "zk-vm"))]
 mod tests_equivalence;

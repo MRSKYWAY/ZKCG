@@ -9,4 +9,6 @@ pub struct Commitment(pub Hash);
 pub struct ZkVmInput {
     pub score: u64,
     pub threshold: u64,
+    pub old_state_root: [u8; 32],
+    pub nonce: u64,
 }
