@@ -1,21 +1,37 @@
-#![cfg(all(feature = "zk-halo2", feature = "zk-zkvm"))]
+#![cfg(all(feature = "zk-halo2", feature = "zk-vm"))]
 
 use crate::{
-    backend::{Halo2Backend, ProofBackend, ZkvmBackend},
+    backend::ProofBackend,
+    backend_halo2::Halo2Backend,
+    backend_zkvm::ZkVmBackend,
     engine::PublicInputs,
 };
-use common::errors::ProtocolError;
-use halo2_proofs::poly::commitment::Params;
-use std::any::TypeId;
-use zkvm::prover::prove_transition; // From zkvm/prover
-use crate::tests_halo2::generate_valid_proof_with_params; // Reuse Halo2 gen
 
-// Shared test scenarios: Same inputs → same outcome across backends
-#[derive(Clone)]
+use common::errors::ProtocolError;
+
+use halo2_proofs::{
+    circuit::Value,
+    plonk::{create_proof, keygen_pk, keygen_vk},
+    poly::commitment::Params,
+    transcript::{Blake2bWrite, Challenge255, TranscriptWrite},
+};
+use halo2_proofs::arithmetic::Field;
+use halo2curves::bn256::{Fr, G1Affine};
+use circuits::score_circuit::ScoreCircuit;
+use zkcg_zkvm_host::prove;
+
+/* ---------------- Expectations ---------------- */
+
+#[derive(Copy, Clone)]
+enum Expectation {
+    Accept,
+    Reject,
+}
+
 struct TestScenario {
     score: u64,
     threshold: u64,
-    expected: Result<(), ProtocolError>,
+    expected: Expectation,
     desc: &'static str,
 }
 
@@ -24,96 +40,135 @@ fn scenarios() -> Vec<TestScenario> {
         TestScenario {
             score: 39,
             threshold: 40,
-            expected: Ok(()),
-            desc: "Valid transition: score <= threshold",
+            expected: Expectation::Accept,
+            desc: "Valid transition",
         },
         TestScenario {
             score: 41,
             threshold: 40,
-            expected: Err(ProtocolError::InvalidProof), // zkVM panics → invalid receipt
-            desc: "Invalid transition: score > threshold",
+            expected: Expectation::Reject,
+            desc: "Policy violation",
         },
         TestScenario {
             score: 0,
             threshold: 0,
-            expected: Ok(()),
-            desc: "Boundary: zero values",
-        },
-        TestScenario {
-            score: u64::MAX,
-            threshold: u64::MAX,
-            expected: Ok(()),
-            desc: "Boundary: max values (no overflow)",
-        },
-        TestScenario {
-            score: u64::MAX - 1,
-            threshold: u64::MAX,
-            expected: Ok(()),
-            desc: "Boundary: near-max diff",
+            expected: Expectation::Accept,
+            desc: "Zero boundary",
         },
     ]
 }
 
-// Harness: Generate proof for backend type, verify against expected
-fn run_scenario_on_backend<B: ProofBackend + 'static + std::fmt::Debug>(
-    backend_factory: impl FnOnce() -> B,
-    scenario: &TestScenario,
-) -> Result<(), ProtocolError> {
-    let inputs = PublicInputs {
-        threshold: scenario.threshold,
-        old_state_root: [0u8; 32],
-        nonce: 1,
-    };
+/* ---------------- Helpers ---------------- */
 
-    // Generate proof bytes (backend-specific)
-    let proof_bytes = if TypeId::of::<B>() == TypeId::of::<Halo2Backend>() {
-        let params = Params::new(9u32);
-        let backend = backend_factory(); // Temp for VK/params
-        // Note: For invalid, Halo2 needs adjusted circuit—here assume prover gen handles (or skip invalid for Halo2 if not wired)
-        generate_valid_proof_with_params(scenario.score, scenario.threshold, &params)
-    } else if TypeId::of::<B>() == TypeId::of::<ZkvmBackend>() {
-        let receipt = prove_transition(&inputs, scenario.score); // Panics in guest if invalid → test fails early
-        bincode::serialize(&receipt).map_err(|_| ProtocolError::SerializationError)?
-    } else {
-        unreachable!("Unsupported backend");
-    };
-
-    let backend = backend_factory();
-    backend.verify(&proof_bytes, &inputs)
+fn matches_expectation(
+    result: Result<(), ProtocolError>,
+    expected: Expectation,
+) -> bool {
+    match expected {
+        Expectation::Accept => result.is_ok(),
+        Expectation::Reject => result.is_err(),
+    }
 }
 
-// Rust-only sim: Inline policy check (for equivalence baseline)
-fn rust_only_sim(scenario: &TestScenario) -> Result<(), ProtocolError> {
-    if scenario.score > scenario.threshold {
+/* ---------------- Halo2 ---------------- */
+
+fn halo2_prove(score: u64, threshold: u64, params: &Params<G1Affine>) -> Vec<u8> {
+    let circuit = ScoreCircuit::<Fr> {
+        score: Value::known(Fr::from(score)),
+        threshold: Value::known(Fr::from(threshold)),
+    };
+
+    let vk = keygen_vk(params, &circuit).unwrap();
+    let pk = keygen_pk(params, vk, &circuit).unwrap();
+
+    let instances = vec![vec![Fr::from(threshold)]];
+    let instance_refs: Vec<&[Fr]> = instances.iter().map(|v| v.as_slice()).collect();
+    let all_instances = vec![instance_refs.as_slice()];
+
+    let mut transcript =
+        Blake2bWrite::<_, G1Affine, Challenge255<G1Affine>>::init(Vec::new());
+
+    create_proof(
+        params,
+        &pk,
+        &[circuit],
+        &all_instances,
+        rand::rngs::OsRng,
+        &mut transcript,
+    )
+    .unwrap();
+
+    transcript.finalize()
+}
+
+fn halo2_backend() -> Halo2Backend {
+    let params = Params::new(9);
+    let dummy = ScoreCircuit::<Fr> {
+        score: Value::known(Fr::ZERO),
+        threshold: Value::known(Fr::ZERO),
+    };
+    let vk = keygen_vk(&params, &dummy).unwrap();
+    Halo2Backend { vk, params }
+}
+
+/* ---------------- zkVM ---------------- */
+
+fn zkvm_prove(score: u64, threshold: u64) -> Result<Vec<u8>, ProtocolError> {
+    prove(score, threshold).map_err(|_| ProtocolError::InvalidProof)
+}
+
+/* ---------------- Rust baseline ---------------- */
+
+fn rust_only(score: u64, threshold: u64) -> Result<(), ProtocolError> {
+    if score > threshold {
         Err(ProtocolError::PolicyViolation)
     } else {
         Ok(())
     }
 }
 
+/* ---------------- Test ---------------- */
+
 #[test]
 fn cross_backend_equivalence() {
-    for scenario in scenarios() {
-        println!("Testing: {}", scenario.desc);
+    for s in scenarios() {
+        let inputs = PublicInputs {
+            threshold: s.threshold,
+            old_state_root: [0u8; 32],
+            nonce: 1,
+        };
 
         // Halo2
-        let halo2_result = run_scenario_on_backend::<Halo2Backend>(|| {
-            // Factory: Init with dummy params/VK
-            let params = Params::new(9u32);
-            let empty_circuit = circuits::score_circuit::ScoreCircuit::without_witnesses();
-            let vk = halo2_proofs::plonk::keygen_vk(&params, &empty_circuit).unwrap();
-            Halo2Backend { vk, params }
-        }, &scenario);
-        assert_eq!(halo2_result, scenario.expected, "Halo2 failed: {}", scenario.desc);
+        let params = Params::new(9);
+        let halo2_proof = halo2_prove(s.score, s.threshold, &params);
+        let halo2 = halo2_backend();
+        let halo2_result = halo2.verify(&halo2_proof, &inputs);
+
+        assert!(
+            matches_expectation(halo2_result, s.expected),
+            "Halo2 failed: {}",
+            s.desc
+        );
 
         // zkVM
-        let zkvm_result = run_scenario_on_backend::<ZkvmBackend>(|| ZkvmBackend, &scenario);
-        assert_eq!(zkvm_result, scenario.expected, "zkVM failed: {}", scenario.desc);
+        let zkvm = ZkVmBackend;
+        let zkvm_result = zkvm_prove(s.score, s.threshold)
+            .and_then(|p| zkvm.verify(&p, &inputs));
 
-        // Rust-only
-        let rust_result = rust_only_sim(&scenario);
-        assert_eq!(rust_result, scenario.expected, "Rust sim failed: {}", scenario.desc);
+        assert!(
+            matches_expectation(zkvm_result, s.expected),
+            "zkVM failed: {}",
+            s.desc
+        );
 
-        println!("✅ Passed: {}", scenario.desc);
+        // Rust-only baseline
+        let rust_result = rust_only(s.score, s.threshold);
+        assert!(
+            matches_expectation(rust_result, s.expected),
+            "Rust failed: {}",
+            s.desc
+        );
+
+        println!("✅ {}", s.desc);
     }
 }

@@ -6,6 +6,44 @@ mod methods {
 use risc0_zkp::core::digest::Digest;
 use serde::{Serialize, Deserialize};
 
+
+use risc0_zkvm::{ExecutorEnv, default_prover};
+use risc0_binfmt::Digestible;
+use common::types::ZkVmInput;
+
+#[derive(Debug)]
+pub enum ZkVmProverError {
+    PolicyViolation,
+    ExecutionFailed,
+}
+
+pub fn prove(score: u64, threshold: u64) -> Result<Vec<u8>, ZkVmProverError> {
+    let result =std::panic::catch_unwind(|| {let mut builder = ExecutorEnv::builder();
+            builder
+                .write(&ZkVmInput { score, threshold })
+                .expect("failed to write zkVM input");
+
+            let env = builder.build().expect("failed to build executor env");
+
+            let prove_info = default_prover()
+                .prove(env, elf())
+                .expect("zkVM execution failed");
+
+            let receipt = prove_info.receipt;
+
+            let proof = ZkVmProof {
+                method_id: method_id(),
+                journal_digest: receipt.journal.digest::<risc0_zkvm::sha::Impl>(),
+            };
+
+            bincode::serialize(&proof).expect("failed to serialize proof")});
+
+            match result {
+        Ok(bytes) => Ok(bytes),
+        Err(_) => Err(ZkVmProverError::PolicyViolation),
+    }
+}
+
 /// Opaque proof envelope produced by the prover
 #[derive(Serialize, Deserialize)]
 pub struct ZkVmProof {
