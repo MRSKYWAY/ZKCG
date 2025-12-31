@@ -20,3 +20,6 @@ mod tests;
 
 #[cfg(all(test, feature = "zk-halo2"))]
 mod tests_halo2;
+
+#[cfg(all(test, feature = "zk-vm"))]
+mod tests_zkvm;

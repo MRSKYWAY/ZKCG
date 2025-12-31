@@ -31,5 +31,6 @@ zk-halo2 = [
 zk-vm = [
   "serde",
   "bincode",
-  "zkcg-zkvm-host"
+  "zkcg-zkvm-host",
+  "circuits"
   ]
