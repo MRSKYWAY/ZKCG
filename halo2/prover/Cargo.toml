@@ -1,0 +1,20 @@
+[package]
+name = "zkcg-halo2-prover"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Halo2
+halo2_proofs = "0.3"
+halo2curves = "0.6"
+
+# Your circuit + shared types
+circuits = { path = "../../circuits" }
+common = { path = "../../common" }
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+bincode = "1"
+
+# Randomness (for create_proof)
+rand = "0.8"
