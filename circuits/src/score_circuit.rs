@@ -1,13 +1,21 @@
 use halo2_proofs::{
     circuit::{Layouter, SimpleFloorPlanner, Value},
-    plonk::{Advice, Circuit, Column, ConstraintSystem, Error, Expression, Instance, Selector},
+    plonk::{
+        Advice, Circuit, Column, ConstraintSystem, Error, Expression, Instance, Selector,
+    },
     poly::Rotation,
 };
-use ff::PrimeField;
+
+use halo2curves::ff::PrimeField;
 
 const DIFF_BITS: usize = 16;
 
-/// Enforces: score <= threshold (sound)
+/// Enforces: score <= threshold
+///
+/// Constraint model:
+///   threshold = score + diff
+///   diff >= 0
+///   diff decomposed into bits
 #[derive(Clone)]
 pub struct ScoreCircuit<F: PrimeField> {
     pub score: Value<F>,
@@ -19,6 +27,7 @@ pub struct ScoreConfig {
     score: Column<Advice>,
     diff: Column<Advice>,
     diff_bits: [Column<Advice>; DIFF_BITS],
+    threshold_advice: Column<Advice>,
     threshold: Column<Instance>,
     selector: Selector,
 }
@@ -39,9 +48,11 @@ impl<F: PrimeField> Circuit<F> for ScoreCircuit<F> {
         let diff = cs.advice_column();
         let threshold = cs.instance_column();
         let selector = cs.selector();
+        let threshold_advice = cs.advice_column();
 
         let diff_bits = [(); DIFF_BITS].map(|_| cs.advice_column());
 
+        cs.enable_equality(threshold_advice);
         cs.enable_equality(score);
         cs.enable_equality(diff);
         cs.enable_equality(threshold);
@@ -74,8 +85,9 @@ impl<F: PrimeField> Circuit<F> for ScoreCircuit<F> {
             let reconstructed = diff_bits.iter().enumerate().fold(
                 Expression::Constant(F::ZERO),
                 |acc, (i, bit)| {
-                    acc + meta.query_advice(*bit, Rotation::cur())
-                        * Expression::Constant(F::from(1u64 << i))
+                    acc
+                        + meta.query_advice(*bit, Rotation::cur())
+                            * Expression::Constant(F::from_u128(1u128 << i))
                 },
             );
 
@@ -86,87 +98,83 @@ impl<F: PrimeField> Circuit<F> for ScoreCircuit<F> {
             score,
             diff,
             diff_bits,
+            threshold_advice,
             threshold,
             selector,
         }
     }
 
     fn synthesize(
-        &self,
-        config: Self::Config,
-        mut layouter: impl Layouter<F>,
-    ) -> Result<(), Error> {
-        layouter.assign_region(
-            || "score check",
-            |mut region| {
-                config.selector.enable(&mut region, 0)?;
+    &self,
+    config: Self::Config,
+    mut layouter: impl Layouter<F>,
+) -> Result<(), Error> {
+    let threshold_cell = layouter.assign_region(
+        || "score <= threshold",
+        |mut region| {
+            config.selector.enable(&mut region, 0)?;
+
+            region.assign_advice(
+                || "score",
+                config.score,
+                0,
+                || self.score,
+            )?;
+
+            let diff_value = self
+                .threshold
+                .zip(self.score)
+                .map(|(t, s)| t - s);
+
+            region.assign_advice(
+                || "diff",
+                config.diff,
+                0,
+                || diff_value,
+            )?;
+
+            // Assign diff bits
+            for i in 0..DIFF_BITS {
+                let bit = diff_value.map(|diff| {
+                    let mut bytes = diff.to_repr();
+                    let mut acc = 0u64;
+
+                    for (j, b) in bytes.as_ref().iter().take(8).enumerate() {
+                        acc |= (*b as u64) << (8 * j);
+                    }
+
+                    (acc >> i) & 1
+                });
 
                 region.assign_advice(
-                    || "score",
-                    config.score,
+                    || format!("diff bit {}", i),
+                    config.diff_bits[i],
                     0,
-                    || self.score,
+                    || bit.map(F::from),
                 )?;
+            }
 
-                let diff_value = self.threshold
-                    .zip(self.score)
-                    .map(|(t, s)| t - s);
+            // ✅ assign threshold into advice
+            let threshold_cell = region.assign_advice(
+                || "threshold advice",
+                config.threshold_advice,
+                0,
+                || self.threshold,
+            )?;
 
-                region.assign_advice(
-                    || "diff",
-                    config.diff,
-                    0,
-                    || diff_value,
-                )?;
+            Ok(threshold_cell)
+        },
+    )?;
 
-                // Assign diff bits
-                for i in 0..DIFF_BITS {
-                    let bit = diff_value.map(|diff| {
-                        let diff_u64 = diff.to_repr()
-                            .as_ref()
-                            .iter()
-                            .take(8)
-                            .enumerate()
-                            .fold(0u64, |acc, (j, b)| acc | ((*b as u64) << (8 * j)));
-                        (diff_u64 >> i) & 1
-                    });
-                    region.assign_advice(
-                        || format!("diff bit {}", i),
-                        config.diff_bits[i],
-                        0,
-                        || bit.map(F::from),
-                    )?;
-                }
+    // ✅ constrain advice cell to instance column
+    layouter.constrain_instance(
+        threshold_cell.cell(),
+        config.threshold,
+        0,
+    )?;
 
-                Ok(())
-            },
-        )
-    }
+    Ok(())
 }
 
-use halo2_proofs::{
-    plonk::keygen_vk,
-    poly::kzg::ParamsKZG,
-};
-use halo2curves::bn256::Bn256;
-use rand::thread_rng;
 
-use crate::Halo2Artifacts;
-
-impl<F: PrimeField> ScoreCircuit<F> {
-    pub fn verifier_artifacts() -> Halo2Artifacts {
-        let k = 10;
-        let params = ParamsKZG::<Bn256>::setup(k, thread_rng());
-
-        let empty = ScoreCircuit {
-            score: Value::unknown(),
-            threshold: Value::unknown(),
-        };
-
-        let vk = keygen_vk(&params, &empty)
-            .expect("failed to generate verifying key");
-
-        Halo2Artifacts { params, vk }
-    }
 }
-

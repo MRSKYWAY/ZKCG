@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 common = { path = "../common" }
 # Optional ZK dependencies
-halo2_proofs = { version = "0.3", optional = true }
+halo2_proofs = {version = "0.3.2", optional = true}
 ff = { version = "0.13", optional = true }
 circuits = { path = "../circuits", optional = true }
 zkcg-zkvm-host = { path = "../zkvm/host", optional = true, features = ["zk-vm"] }
@@ -14,16 +14,19 @@ serde = { version = "1", features = ["derive"], optional = true }
 bincode = { version = "1", optional = true }
 risc0-zkp = "3"
 risc0-core = "3"
-halo2curves = "0.6"
+halo2curves = { version = "0.6", optional = true }
 
 [dev-dependencies]
 rand = "0.8"
+halo2curves = "0.6"
 
 [features]
+default = []
 zk-halo2 = [
     "halo2_proofs",
     "ff",
     "circuits",
+    "halo2curves",
 ]
 zk-vm = [
   "serde",

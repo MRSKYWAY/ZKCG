@@ -7,27 +7,17 @@ use crate::{
 };
 
 use halo2_proofs::{
-    plonk::{verify_proof, VerifyingKey},
-    poly::{
-        commitment::Params,
-        kzg::{
-            commitment::{KZGCommitmentScheme, ParamsKZG},
-            multiopen::VerifierSHPLONK,
-            strategy::SingleStrategy,
-        },
-    },
+    plonk::{verify_proof, VerifyingKey, SingleVerifier},
+    poly::commitment::Params,
     transcript::{Blake2bRead, Challenge255},
 };
 
-use halo2curves::bn256::{Bn256, Fr, G1Affine};
-use circuits::score_circuit::ScoreCircuit;
+use halo2curves::bn256::{Fr, G1Affine};
 
-/// Real Halo2 verifier using KZG + SHPLONK
+/// Real Halo2 verifier backend (runtime keys, KZG implicit)
 pub struct Halo2Backend {
-    /// Verifying key must be pre-generated and stored
     pub vk: VerifyingKey<G1Affine>,
-    /// KZG parameters (same `k` as prover)
-    pub params: ParamsKZG<Bn256>,
+    pub params: Params<G1Affine>,
 }
 
 impl ProofBackend for Halo2Backend {
@@ -36,28 +26,28 @@ impl ProofBackend for Halo2Backend {
         proof_bytes: &[u8],
         public_inputs: &PublicInputs,
     ) -> Result<(), ProtocolError> {
-        // --- 1️⃣ Reconstruct public inputs ---
-        // Must EXACTLY match circuit instance layout
+        // --- public inputs (instance columns)
         let threshold = Fr::from(public_inputs.threshold as u64);
-        let instances = vec![vec![threshold]];
 
-        // --- 2️⃣ Prepare transcript ---
-        let mut transcript = Blake2bRead::<_, _, Challenge255<_>>::init(proof_bytes);
+        let instance_values = vec![vec![threshold]];
+        let instance_slices: Vec<&[Fr]> =
+            instance_values.iter().map(|v| v.as_slice()).collect();
+        let all_instances: Vec<&[&[Fr]]> =
+            vec![instance_slices.as_slice()];
 
-        // --- 3️⃣ Verification strategy ---
-        let strategy = SingleStrategy::new(&self.params);
+        // --- transcript
+        let mut transcript =
+            Blake2bRead::<_, G1Affine, Challenge255<G1Affine>>::init(proof_bytes);
 
-        // --- 4️⃣ Verify proof ---
-        verify_proof::<
-            KZGCommitmentScheme<Bn256>,
-            VerifierSHPLONK<Bn256>,
-            _,
-            _,
-        >(
+        // --- verification strategy
+        let strategy = SingleVerifier::new(&self.params);
+
+        // --- verify
+        verify_proof(
             &self.params,
             &self.vk,
             strategy,
-            &[&instances],
+            &all_instances,
             &mut transcript,
         )
         .map_err(|_| ProtocolError::InvalidProof)?;

@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 # Halo2
-halo2_proofs = "0.3"
+halo2_proofs = "0.3.2"
 halo2curves = "0.6"
 
 # Your circuit + shared types

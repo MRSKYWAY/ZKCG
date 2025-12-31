@@ -1,46 +1,35 @@
 use rand::rngs::OsRng;
 
 use halo2_proofs::{
-    plonk::{
-        create_proof, keygen_pk, keygen_vk,
-    },
-    poly::{
-        kzg::{
-            commitment::KZGCommitmentScheme,
-            multiopen::ProverSHPLONK,
-            strategy::SingleStrategy,
-            ParamsKZG,
-        },
-    },
-    transcript::{
-        Blake2bWrite, Challenge255,
-    },
+    circuit::Value,
+    plonk::{create_proof, keygen_pk, keygen_vk},
+    poly::commitment::Params,
+    transcript::{Blake2bWrite, Challenge255},
 };
 
-use halo2curves::bn256::Bn256;
+use halo2curves::bn256::{Fr, G1Affine};
 
 use circuits::score_circuit::ScoreCircuit;
-use common::types::ZkVmInput;
 
 mod proof;
 use proof::Halo2Proof;
 
 fn main() {
-    // ---- real inputs (replace with CLI / API later)
+    // ---- real inputs
     let score: u64 = 42;
     let threshold: u64 = 40;
 
-    // ---- build the circuit
-    let circuit = ScoreCircuit {
-        score,
-        threshold,
+    // ---- circuit with witnesses
+    let circuit = ScoreCircuit::<Fr> {
+        score: Value::known(Fr::from(score)),
+        threshold: Value::known(Fr::from(threshold)),
     };
 
-    // ---- circuit parameters
-    // must match what verifier will use
+    // ---- security parameter
     let k: u32 = 9;
 
-    let params = ParamsKZG::<Bn256>::new(k);
+    // ---- KZG params (commitment curve = G1Affine)
+    let params: Params<G1Affine> = Params::new(k);
 
     // ---- key generation
     let vk = keygen_vk(&params, &circuit)
@@ -49,35 +38,31 @@ fn main() {
     let pk = keygen_pk(&params, vk, &circuit)
         .expect("pk generation failed");
 
-    // ---- public inputs
-    // IMPORTANT: only public columns go here
-    let public_inputs = vec![vec![threshold]];
+    // ---- public inputs (instance column)
+    let public_inputs: Vec<Vec<Fr>> = vec![vec![Fr::from(threshold)]];
+    let instance_slices: Vec<&[Fr]> = public_inputs.iter().map(|v| v.as_slice()).collect();
+    let all_instances: Vec<&[&[Fr]]> = vec![instance_slices.as_slice()];
+
 
     // ---- proof creation
     let mut proof_bytes = Vec::new();
-    let mut transcript = Blake2bWrite::<_, _, Challenge255<_>>::init(&mut proof_bytes);
+    let mut transcript =
+        Blake2bWrite::<_, G1Affine, Challenge255<G1Affine>>::init(&mut proof_bytes);
 
-    create_proof::<
-        KZGCommitmentScheme<Bn256>,
-        ProverSHPLONK<_>,
-        _,
-        _,
-        _,
-        _,
-    >(
-        &params,
-        &pk,
-        &[circuit],
-        &[&public_inputs],
-        OsRng,
-        &mut transcript,
+    create_proof(
+    &params,
+    &pk,
+    &[circuit],
+    &all_instances,
+    OsRng,
+    &mut transcript,
     )
     .expect("proof generation failed");
 
     let proof = Halo2Proof { proof_bytes };
 
-    let encoded = bincode::serialize(&proof)
-        .expect("proof serialization failed");
+    let encoded =
+        bincode::serialize(&proof).expect("proof serialization failed");
 
     println!("Halo2 proof generated ({} bytes)", encoded.len());
 }

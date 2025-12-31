@@ -1,8 +1,14 @@
 use common::errors::ProtocolError;
+use crate::{
+    engine::PublicInputs,
+    backend::ProofBackend,
+};
+
+use circuits::score_circuit::ScoreCircuit;
 
 pub struct ProofInput<'a> {
     pub proof_bytes: &'a [u8],
-    pub public_threshold: u64,
+    pub public_inputs: &'a PublicInputs,
 }
 
 pub fn verify(
@@ -10,41 +16,22 @@ pub fn verify(
 ) -> Result<(), ProtocolError> {
     #[cfg(feature = "zk-halo2")]
     {
-        return verify_halo2(proof);
+        use crate::backend_halo2::Halo2Backend;
+        use halo2curves::bn256::Fr;
+
+        let artifacts = circuits::halo2_artifacts::verifier_artifacts();
+
+
+        let backend = Halo2Backend {
+            vk: artifacts.vk,
+            params: artifacts.params,
+        };
+
+        return backend.verify(proof.proof_bytes, proof.public_inputs);
     }
 
     #[cfg(not(feature = "zk-halo2"))]
     {
-        // Stub verifier path
         Ok(())
     }
-}
-
-#[cfg(feature = "zk-halo2")]
-fn verify_halo2(
-    input: ProofInput<'_>,
-) -> Result<(), ProtocolError> {
-    use halo2_proofs::{
-        dev::MockProver,
-        pasta::Fp,
-        circuit::Value,
-    };
-
-    use circuits::score_circuit::ScoreCircuit;
-
-    let threshold = Fp::from(input.public_threshold);
-
-    let circuit = ScoreCircuit::<Fp> {
-        score: Value::unknown(),
-        threshold: Value::known(threshold),
-    };
-
-    let prover = MockProver::run(
-        4,
-        &circuit,
-        vec![vec![threshold]],
-    )
-    .map_err(|_| ProtocolError::InvalidProof)?;
-
-    prover.verify().map_err(|_| ProtocolError::InvalidProof)
 }
