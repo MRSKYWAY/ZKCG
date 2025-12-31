@@ -60,10 +60,11 @@ impl<F: PrimeField> Circuit<F> for ScoreCircuit<F> {
         for bit in diff_bits.iter() {
             cs.enable_equality(*bit);
 
-            // bit ∈ {0,1}
+            // bit ∈ {0,1} (gated by selector)
             cs.create_gate("bit is boolean", |meta| {
+                let s = meta.query_selector(selector);
                 let b = meta.query_advice(*bit, Rotation::cur());
-                vec![b.clone() * (Expression::Constant(F::ONE) - b)]
+                vec![s * b.clone() * (Expression::Constant(F::ONE) - b)]
             });
         }
 
@@ -105,76 +106,74 @@ impl<F: PrimeField> Circuit<F> for ScoreCircuit<F> {
     }
 
     fn synthesize(
-    &self,
-    config: Self::Config,
-    mut layouter: impl Layouter<F>,
-) -> Result<(), Error> {
-    let threshold_cell = layouter.assign_region(
-        || "score <= threshold",
-        |mut region| {
-            config.selector.enable(&mut region, 0)?;
-
-            region.assign_advice(
-                || "score",
-                config.score,
-                0,
-                || self.score,
-            )?;
-
-            let diff_value = self
-                .threshold
-                .zip(self.score)
-                .map(|(t, s)| t - s);
-
-            region.assign_advice(
-                || "diff",
-                config.diff,
-                0,
-                || diff_value,
-            )?;
-
-            // Assign diff bits
-            for i in 0..DIFF_BITS {
-                let bit = diff_value.map(|diff| {
-                    let mut bytes = diff.to_repr();
-                    let mut acc = 0u64;
-
-                    for (j, b) in bytes.as_ref().iter().take(8).enumerate() {
-                        acc |= (*b as u64) << (8 * j);
-                    }
-
-                    (acc >> i) & 1
-                });
+        &self,
+        config: Self::Config,
+        mut layouter: impl Layouter<F>,
+    ) -> Result<(), Error> {
+        let threshold_cell = layouter.assign_region(
+            || "score <= threshold",
+            |mut region| {
+                config.selector.enable(&mut region, 0)?;
 
                 region.assign_advice(
-                    || format!("diff bit {}", i),
-                    config.diff_bits[i],
+                    || "score",
+                    config.score,
                     0,
-                    || bit.map(F::from),
+                    || self.score,
                 )?;
-            }
 
-            // ✅ assign threshold into advice
-            let threshold_cell = region.assign_advice(
-                || "threshold advice",
-                config.threshold_advice,
-                0,
-                || self.threshold,
-            )?;
+                let diff_value = self
+                    .threshold
+                    .zip(self.score)
+                    .map(|(t, s)| t - s);
 
-            Ok(threshold_cell)
-        },
-    )?;
+                region.assign_advice(
+                    || "diff",
+                    config.diff,
+                    0,
+                    || diff_value,
+                )?;
 
-    // ✅ constrain advice cell to instance column
-    layouter.constrain_instance(
-        threshold_cell.cell(),
-        config.threshold,
-        0,
-    )?;
+                // Assign diff bits
+                for i in 0..DIFF_BITS {
+                    let bit = diff_value.map(|diff| {
+                        let mut bytes = diff.to_repr();
+                        let mut acc = 0u64;
 
-    Ok(())
-}
+                        for (j, b) in bytes.as_ref().iter().take(8).enumerate() {
+                            acc |= (*b as u64) << (8 * j);
+                        }
 
+                        (acc >> i) & 1
+                    });
 
+                    region.assign_advice(
+                        || format!("diff bit {}", i),
+                        config.diff_bits[i],
+                        0,
+                        || bit.map(F::from),
+                    )?;
+                }
+
+                // assign threshold into advice
+                let threshold_cell = region.assign_advice(
+                    || "threshold advice",
+                    config.threshold_advice,
+                    0,
+                    || self.threshold,
+                )?;
+
+                Ok(threshold_cell)
+            },
+        )?;
+
+        // constrain advice cell to instance column
+        layouter.constrain_instance(
+            threshold_cell.cell(),
+            config.threshold,
+            0,
+        )?;
+
+        Ok(())
+    }
 }

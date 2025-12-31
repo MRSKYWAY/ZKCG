@@ -41,7 +41,12 @@ impl ProofBackend for Halo2Backend {
 
         // --- verification strategy
         let strategy = SingleVerifier::new(&self.params);
-
+        println!("Starting proof verification...");
+        println!("Public inputs: {:?}", all_instances);
+        println!("Proof bytes length: {}", proof_bytes.len());
+        // println!("Params: {:?}", self.params);
+        // println!("Transcript state: {:?}", transcript);
+        println!("Using SingleVerifier strategy.");
         // --- verify
         verify_proof(
             &self.params,

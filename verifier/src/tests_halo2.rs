@@ -1,8 +1,5 @@
 #![cfg(feature = "zk-halo2")]
 
-//! Cryptographic tests for real Halo2 verification
-//! Phase 6: these tests prove cryptography is enforced
-
 use rand::rngs::OsRng;
 
 use halo2_proofs::{
@@ -11,7 +8,7 @@ use halo2_proofs::{
     poly::commitment::Params,
     transcript::{Blake2bWrite, Challenge255, TranscriptWrite},
 };
-
+use halo2_proofs::arithmetic::Field;
 use halo2curves::bn256::{Fr, G1Affine};
 
 use circuits::score_circuit::ScoreCircuit;
@@ -40,9 +37,8 @@ fn generate_valid_proof(score: u64, threshold: u64) -> Vec<u8> {
     let all_instances: Vec<&[&[Fr]]> =
         vec![instance_slices.as_slice()];
 
-    let mut proof = Vec::new();
     let mut transcript =
-        Blake2bWrite::<_, G1Affine, Challenge255<G1Affine>>::init(&mut proof);
+        Blake2bWrite::<_, G1Affine, Challenge255<G1Affine>>::init(Vec::new());
 
     create_proof(
         &params,
@@ -54,10 +50,7 @@ fn generate_valid_proof(score: u64, threshold: u64) -> Vec<u8> {
     )
     .unwrap();
 
-    // 🔴 REQUIRED — finalize transcript
-    transcript.finalize();
-
-    proof
+    transcript.finalize()
 }
 
 /// Generate a valid Halo2 proof using caller-supplied params
@@ -80,9 +73,8 @@ fn generate_valid_proof_with_params(
     let all_instances: Vec<&[&[Fr]]> =
         vec![instance_slices.as_slice()];
 
-    let mut proof = Vec::new();
     let mut transcript =
-        Blake2bWrite::<_, G1Affine, Challenge255<G1Affine>>::init(&mut proof);
+        Blake2bWrite::<_, G1Affine, Challenge255<G1Affine>>::init(Vec::new());
 
     create_proof(
         params,
@@ -94,21 +86,17 @@ fn generate_valid_proof_with_params(
     )
     .unwrap();
 
-    // 🔴 REQUIRED — finalize transcript
-    transcript.finalize();
-
-    proof
+    transcript.finalize()
 }
 
 /// Construct a Halo2 verifier backend from params
 fn backend(params: Params<G1Affine>) -> Halo2Backend {
-    let empty = ScoreCircuit::<Fr> {
-        score: Value::unknown(),
-        threshold: Value::unknown(),
+    let dummy = ScoreCircuit::<Fr> {
+        score: Value::known(Fr::ZERO),
+        threshold: Value::known(Fr::ZERO),
     };
 
-    let vk = keygen_vk(&params, &empty).unwrap();
-
+    let vk = keygen_vk(&params, &dummy).unwrap();
     Halo2Backend { vk, params }
 }
 
@@ -125,7 +113,6 @@ fn valid_halo2_proof_is_accepted() {
         old_state_root: [0u8; 32],
         nonce: 1,
     };
-
     assert!(backend.verify(&proof, &inputs).is_ok());
 }
 
