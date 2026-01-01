@@ -10,6 +10,13 @@ pub struct ZkVmOutput {
     pub ok: bool,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct ZkVmJournal {
+    pub threshold: u64,
+    pub old_state_root: [u8; 32],
+    pub nonce: u64,
+    pub ok: bool,
+}
 risc0_zkvm::guest::entry!(main);
 
 fn main() {
@@ -27,6 +34,5 @@ fn main() {
     env::commit(&input.threshold);
     env::commit(&input.old_state_root);
     env::commit(&input.nonce);
-
-    env::commit(&ZkVmOutput { ok: true });
+    env::commit(&true);
 }

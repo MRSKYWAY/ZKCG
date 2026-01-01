@@ -21,30 +21,44 @@ fn valid_inputs() -> PublicInputs {
         nonce: 7,
     }
 }
+// Consistent inputs (override genesis for matching)
+fn test_inputs() -> PublicInputs {
+    PublicInputs {
+        threshold: 10,
+        old_state_root: [0u8; 32], // Match genesis root for simplicity
+        nonce: 1, // state.nonce + 1
+    }
+}
+
+// Helper: Mock state to match inputs (avoids genesis mismatch)
+fn mock_state(inputs: &PublicInputs) -> ProtocolState {
+    ProtocolState {
+        state_root: inputs.old_state_root,
+        nonce: inputs.nonce - 1, // Pre-transition
+        ..ProtocolState::genesis()
+    }
+}
+
 #[test]
 fn zkvm_valid_transition_succeeds() {
-    let mut inputs = valid_inputs();
-    let proof = prove(5, 10, inputs.old_state_root, inputs.nonce).expect("valid proof");
+    let inputs = test_inputs();
+    let state = mock_state(&inputs);
 
-    let state = ProtocolState::genesis();
     let mut engine = VerifierEngine::new(
         state.clone(),
         Box::new(ZkVmBackend),
     );
 
-    let inputs = PublicInputs {
-        threshold: 10,
-        old_state_root: state.state_root,
-        nonce: state.nonce + 1,
-    };
-
+    // Prove with matching inputs (score=5 <=10)
+    let proof = prove(5, inputs.threshold, inputs.old_state_root, inputs.nonce)
+        .expect("valid proof generated");
     let result = engine.process_transition(
         &proof,
         inputs,
         commitment(),
     );
-
-    assert!(result.is_ok());
+    println!("Result: {:?}", result);
+    assert!(result.is_ok(), "Valid transition should succeed");
 }
 
 #[test]
