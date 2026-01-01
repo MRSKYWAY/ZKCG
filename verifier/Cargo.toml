@@ -17,6 +17,8 @@ risc0-core = "3"
 halo2curves = { version = "0.6", optional = true }
 risc0-zkvm = { version = "3", default-features = false }
 sha2 = "0.10"
+rand = "0.8"
+
 
 [dev-dependencies]
 rand = "0.8"

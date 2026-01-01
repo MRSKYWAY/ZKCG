@@ -52,12 +52,14 @@ fn zkvm_valid_transition_succeeds() {
     // Prove with matching inputs (score=5 <=10)
     let proof = prove(5, inputs.threshold, inputs.old_state_root, inputs.nonce)
         .expect("valid proof generated");
+    println!("Generated proof: {:?}", proof);
     let result = engine.process_transition(
         &proof,
         inputs,
         commitment(),
     );
     println!("Result: {:?}", result);
+
     assert!(result.is_ok(), "Valid transition should succeed");
 }
 

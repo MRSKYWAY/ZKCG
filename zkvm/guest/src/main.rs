@@ -4,6 +4,8 @@
 use risc0_zkvm::guest::env;
 use serde::{Deserialize, Serialize};
 use common::types::ZkVmInput;
+use risc0_zkvm::sha::{Sha256, Digest};
+
 
 #[derive(Serialize, Deserialize)]
 pub struct ZkVmOutput {

@@ -3992,18 +3992,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "zkcg-prover"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "common",
- "risc0-binfmt",
- "risc0-zkvm",
- "serde",
- "zkcg-zkvm-host",
-]
-
-[[package]]
 name = "zkcg-zkvm-guest"
 version = "0.1.0"
 dependencies = [

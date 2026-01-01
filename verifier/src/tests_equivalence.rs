@@ -8,7 +8,7 @@ use crate::{
 };
 
 use common::errors::ProtocolError;
-
+use rand::rngs::OsRng;
 use halo2_proofs::{
     circuit::Value,
     plonk::{create_proof, keygen_pk, keygen_vk},
@@ -19,7 +19,7 @@ use halo2_proofs::arithmetic::Field;
 use halo2curves::bn256::{Fr, G1Affine};
 use circuits::score_circuit::ScoreCircuit;
 use zkcg_zkvm_host::prove;
-
+use common::state::ProtocolState;
 /* ---------------- Expectations ---------------- */
 
 #[derive(Copy, Clone)]
@@ -93,7 +93,7 @@ fn halo2_prove(score: u64, threshold: u64, params: &Params<G1Affine>) -> Vec<u8>
         &pk,
         &[circuit],
         &all_instances,
-        rand::rngs::OsRng,
+        OsRng,
         &mut transcript,
     )
     .unwrap();
@@ -111,10 +111,28 @@ fn halo2_backend() -> Halo2Backend {
     Halo2Backend { vk, params }
 }
 
+// Consistent inputs (override genesis for matching)
+fn test_inputs() -> PublicInputs {
+    PublicInputs {
+        threshold: 10,
+        old_state_root: [0u8; 32], // Match genesis root for simplicity
+        nonce: 1, // state.nonce + 1
+    }
+}
+
+// Helper: Mock state to match inputs (avoids genesis mismatch)
+fn mock_state(inputs: &PublicInputs) -> ProtocolState {
+    ProtocolState {
+        state_root: inputs.old_state_root,
+        nonce: inputs.nonce - 1, // Pre-transition
+        ..ProtocolState::genesis()
+    }
+}
 /* ---------------- zkVM ---------------- */
 
 fn zkvm_prove(score: u64, threshold: u64) -> Result<Vec<u8>, ProtocolError> {
-    prove(score, threshold).map_err(|_| ProtocolError::InvalidProof)
+    let inputs = test_inputs();
+    prove(score, threshold, inputs.old_state_root, inputs.nonce).map_err(|_| ProtocolError::InvalidProof)
 }
 
 /* ---------------- Rust baseline ---------------- */
