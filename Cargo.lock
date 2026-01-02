@@ -54,7 +54,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
- "verifier",
+ "zkcg-verifier",
 ]
 
 [[package]]
@@ -3457,25 +3457,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
 
 [[package]]
-name = "verifier"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "circuits",
- "common",
- "ff",
- "halo2_proofs",
- "halo2curves",
- "rand 0.8.5",
- "risc0-core",
- "risc0-zkp",
- "risc0-zkvm",
- "serde",
- "sha2",
- "zkcg-zkvm-host",
-]
-
-[[package]]
 name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3989,6 +3970,25 @@ dependencies = [
  "halo2curves",
  "rand 0.8.5",
  "serde",
+]
+
+[[package]]
+name = "zkcg-verifier"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "circuits",
+ "common",
+ "ff",
+ "halo2_proofs",
+ "halo2curves",
+ "rand 0.8.5",
+ "risc0-core",
+ "risc0-zkp",
+ "risc0-zkvm",
+ "serde",
+ "sha2",
+ "zkcg-zkvm-host",
 ]
 
 [[package]]

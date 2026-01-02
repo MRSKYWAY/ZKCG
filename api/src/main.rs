@@ -3,7 +3,7 @@ use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 use tokio::net::TcpListener;
 
-use verifier::engine::VerifierEngine;
+use zkcg_verifier::engine::VerifierEngine;
 use common::state::ProtocolState;
 
 use api::handler::{submit_proof, AppState};

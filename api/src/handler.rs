@@ -3,7 +3,7 @@ use axum::{
     http::StatusCode,
     Json,
 };
-use verifier::engine::{PublicInputs, VerifierEngine};
+use zkcg_verifier::engine::{PublicInputs, VerifierEngine};
 use common::{
     errors::ProtocolError,
     types::Commitment,

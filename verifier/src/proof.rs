@@ -4,6 +4,7 @@ use crate::{
     backend::ProofBackend,
 };
 
+#[cfg(any(feature = "zk-halo2", feature = "zk-vm"))]
 use circuits::score_circuit::ScoreCircuit;
 
 pub struct ProofInput<'a> {
