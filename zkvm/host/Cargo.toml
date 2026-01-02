@@ -5,7 +5,7 @@ edition = "2024"
 build = "build.rs"
 
 [dependencies]
-common = { path = "../../common" }
+zkcg-common = { path = "../../common" }
 risc0-zkp = "3"
 risc0-core = "3"
 serde = { version = "1", features = ["derive"] }

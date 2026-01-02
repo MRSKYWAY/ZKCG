@@ -1,6 +1,6 @@
 #![cfg(feature = "zk-vm")]
 
-use common::errors::ProtocolError;
+use zkcg_common::errors::ProtocolError;
 use crate::{backend::ProofBackend, engine::PublicInputs};
 
 use risc0_zkp::core::digest::Digest;

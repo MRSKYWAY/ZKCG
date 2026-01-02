@@ -4,7 +4,7 @@ use axum::{
     Json,
 };
 use zkcg_verifier::engine::{PublicInputs, VerifierEngine};
-use common::{
+use zkcg_common::{
     errors::ProtocolError,
     types::Commitment,
 };

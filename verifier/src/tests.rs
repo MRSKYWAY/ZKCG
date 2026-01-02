@@ -1,5 +1,5 @@
     use crate::engine::{PublicInputs, VerifierEngine};
-    use common::{
+    use zkcg_common::{
         state::ProtocolState,
         types::Commitment,
         errors::ProtocolError,

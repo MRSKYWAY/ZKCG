@@ -1,4 +1,4 @@
-use common::errors::ProtocolError;
+use zkcg_common::errors::ProtocolError;
 use crate::engine::PublicInputs;
 
 pub trait ProofBackend: Send + Sync {

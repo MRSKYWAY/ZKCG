@@ -1,7 +1,14 @@
 [package]
-name = "common"
+name = "zkcg-common"
 version = "0.1.0"
 edition = "2024"
+description = "Shared types, errors, and utilities for the ZKCG protocol"
+license = "Apache-2.0"
+repository = "https://github.com/MRSKYWAY/zkcg-verifier"
+keywords = ["zk", "zero-knowledge", "protocol", "cryptography"]
+categories = ["cryptography", "data-structures"]
+readme = "README.md"
+publish = true
 
 [features]
 default = ["std"]

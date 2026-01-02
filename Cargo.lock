@@ -50,10 +50,10 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "base64",
- "common",
  "serde",
  "serde_json",
  "tokio",
+ "zkcg-common",
  "zkcg-verifier",
 ]
 
@@ -613,14 +613,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fa961b519f0b462e3a3b4a34b64d119eeaca1d59af726fe450bbba07a9fc0a1"
 dependencies = [
  "thiserror 2.0.17",
-]
-
-[[package]]
-name = "common"
-version = "0.1.0"
-dependencies = [
- "serde",
- "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -3960,16 +3952,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "zkcg-common"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "zkcg-halo2-prover"
 version = "0.1.0"
 dependencies = [
  "bincode",
  "circuits",
- "common",
  "halo2_proofs",
  "halo2curves",
  "rand 0.8.5",
  "serde",
+ "zkcg-common",
 ]
 
 [[package]]
@@ -3978,7 +3978,6 @@ version = "0.1.0"
 dependencies = [
  "bincode",
  "circuits",
- "common",
  "ff",
  "halo2_proofs",
  "halo2curves",
@@ -3988,6 +3987,7 @@ dependencies = [
  "risc0-zkvm",
  "serde",
  "sha2",
+ "zkcg-common",
  "zkcg-zkvm-host",
 ]
 
@@ -3995,9 +3995,9 @@ dependencies = [
 name = "zkcg-zkvm-guest"
 version = "0.1.0"
 dependencies = [
- "common",
  "risc0-zkvm",
  "serde",
+ "zkcg-common",
 ]
 
 [[package]]
@@ -4005,13 +4005,13 @@ name = "zkcg-zkvm-host"
 version = "0.1.0"
 dependencies = [
  "bincode",
- "common",
  "risc0-binfmt",
  "risc0-build",
  "risc0-core",
  "risc0-zkp",
  "risc0-zkvm",
  "serde",
+ "zkcg-common",
 ]
 
 [[package]]

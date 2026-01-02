@@ -10,7 +10,7 @@ halo2curves = "0.6"
 
 # Your circuit + shared types
 circuits = { path = "../../circuits" }
-common = { path = "../../common" }
+zkcg-common = { path = "../../common" }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }

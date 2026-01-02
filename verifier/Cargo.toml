@@ -2,13 +2,20 @@
 name = "zkcg-verifier"
 version = "0.1.0"
 edition = "2024"
+description = "Public verifier and node for ZKCG – trustless off-chain computation verification"
+license = "Apache-2.0"
+repository = "https://github.com/MRSKYWAY/zkcg-verifier"
+keywords = ["zk", "zero-knowledge", "verifier", "halo2", "risc0"]
+categories = ["cryptography", "cryptography::cryptocurrencies"]
+readme = "README.md"
+publish = true
 
 [dependencies]
-common = { path = "../common" }
+zkcg-common = { path = "../common" }
 # Optional ZK dependencies
 halo2_proofs = {version = "0.3.2", optional = true}
 ff = { version = "0.13", optional = true }
-circuits = { path = "../circuits", optional = true }
+circuits = {version = "0.1.0", path = "../circuits", optional = true }
 zkcg-zkvm-host = { path = "../zkvm/host", optional = true, features = ["zk-vm"] }
 serde = { version = "1", features = ["derive"], optional = true }
 bincode = { version = "1", optional = true }

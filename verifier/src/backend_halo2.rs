@@ -1,6 +1,6 @@
 #![cfg(feature = "zk-halo2")]
 
-use common::errors::ProtocolError;
+use zkcg_common::errors::ProtocolError;
 use crate::{
     backend::ProofBackend,
     engine::PublicInputs,

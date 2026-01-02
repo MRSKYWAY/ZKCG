@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use common::types::Hash;
+use zkcg_common::types::Hash;
 
 #[derive(Debug, Deserialize)]
 pub struct SubmitProofRequest {

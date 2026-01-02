@@ -9,7 +9,7 @@ use serde::{Serialize, Deserialize};
 
 use risc0_zkvm::{ExecutorEnv, default_prover};
 use risc0_binfmt::Digestible;
-use common::types::ZkVmInput;
+use zkcg_common::types::ZkVmInput;
 
 #[derive(Debug)]
 pub enum ZkVmProverError {

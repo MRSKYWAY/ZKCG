@@ -4,7 +4,7 @@ use crate::{
     engine::{PublicInputs, VerifierEngine},
     backend_zkvm::ZkVmBackend,
 };
-use common::{
+use zkcg_common::{
     errors::ProtocolError,
     state::ProtocolState,
     types::Commitment,

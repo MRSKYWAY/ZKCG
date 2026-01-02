@@ -1,4 +1,4 @@
-use common::state::ProtocolState;
+use zkcg_common::state::ProtocolState;
 use std::sync::{Arc, Mutex};
 
 #[derive(Clone)]

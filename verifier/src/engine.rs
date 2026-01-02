@@ -1,4 +1,4 @@
-use common::{
+use zkcg_common::{
     errors::ProtocolError,
     state::ProtocolState,
     types::Commitment,

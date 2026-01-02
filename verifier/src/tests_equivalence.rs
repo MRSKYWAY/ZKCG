@@ -6,7 +6,7 @@ use crate::{
 };
 use crate::backend_zkvm::ZkVmBackend;
 use crate::backend::ProofBackend;
-use common::errors::ProtocolError;
+use zkcg_common::errors::ProtocolError;
 use rand::rngs::OsRng;
 use halo2_proofs::{
     circuit::Value,
@@ -18,7 +18,7 @@ use halo2_proofs::arithmetic::Field;
 use halo2curves::bn256::{Fr, G1Affine};
 use circuits::score_circuit::ScoreCircuit;
 use zkcg_zkvm_host::prove;
-use common::state::ProtocolState;
+use zkcg_common::state::ProtocolState;
 /* ---------------- Expectations ---------------- */
 
 #[derive(Copy, Clone)]
