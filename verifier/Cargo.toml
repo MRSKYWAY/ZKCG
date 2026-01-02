@@ -11,12 +11,12 @@ readme = "../README.md"
 publish = true
 
 [dependencies]
-zkcg-common = { path = "../common" }
+zkcg-common = { path = "../common", version= "0.1.0" }
 # Optional ZK dependencies
 halo2_proofs = {version = "0.3.2", optional = true}
 ff = { version = "0.13", optional = true }
 circuits = {version = "0.1.0", path = "../circuits", optional = true }
-zkcg-zkvm-host = { path = "../zkvm/host", optional = true, features = ["zk-vm"] }
+zkcg-zkvm-host = { version = "0.1.0",path = "../zkvm/host", optional = true, features = ["zk-vm"] }
 serde = { version = "1", features = ["derive"], optional = true }
 bincode = { version = "1", optional = true }
 risc0-zkp = "3"
