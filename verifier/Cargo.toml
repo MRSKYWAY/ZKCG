@@ -7,7 +7,7 @@ license = "Apache-2.0"
 repository = "https://github.com/MRSKYWAY/zkcg-verifier"
 keywords = ["zk", "zero-knowledge", "verifier", "halo2", "risc0"]
 categories = ["cryptography", "cryptography::cryptocurrencies"]
-readme = "README.md"
+readme = "../README.md"
 publish = true
 
 [dependencies]

@@ -7,7 +7,7 @@ license = "Apache-2.0"
 repository = "https://github.com/MRSKYWAY/zkcg-verifier"
 keywords = ["zk", "zero-knowledge", "protocol", "cryptography"]
 categories = ["cryptography", "data-structures"]
-readme = "README.md"
+readme = "../README.md"
 publish = true
 
 [features]
