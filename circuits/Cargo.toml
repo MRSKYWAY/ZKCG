@@ -3,6 +3,16 @@ name = "circuits"
 version = "0.1.0"
 edition = "2024"
 
+description = "Zero-knowledge circuits for the ZKCG protocol"
+license = "Apache-2.0"
+repository = "https://github.com/MRSKYWAY/ZKCG"
+readme = "README.md"
+
+homepage = "https://github.com/MRSKYWAY/ZKCG"
+documentation = "https://docs.rs/circuits"
+keywords = ["zk", "circuits", "zero-knowledge", "ZKCG"]
+categories = ["cryptography", "zero-knowledge"]
+
 [dependencies]
 halo2_proofs = "0.3.2"
 halo2curves = "0.6"

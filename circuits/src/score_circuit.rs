@@ -137,7 +137,7 @@ impl<F: PrimeField> Circuit<F> for ScoreCircuit<F> {
                 // Assign diff bits
                 for i in 0..DIFF_BITS {
                     let bit = diff_value.map(|diff| {
-                        let mut bytes = diff.to_repr();
+                        let bytes = diff.to_repr();
                         let mut acc = 0u64;
 
                         for (j, b) in bytes.as_ref().iter().take(8).enumerate() {

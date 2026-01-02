@@ -1,3 +1,8 @@
+/*
+These tests were designed for MockProver 
+Do Not Run These Tests
+*/
+
 use halo2_proofs::{
     dev::MockProver,
     pasta::Fp,

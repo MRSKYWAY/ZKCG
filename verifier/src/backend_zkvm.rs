@@ -5,10 +5,7 @@ use crate::{backend::ProofBackend, engine::PublicInputs};
 
 use risc0_zkp::core::digest::Digest;
 use serde::Deserialize;
-use risc0_zkvm::sha::Impl;
-use risc0_zkvm::sha::Digestible;
 
-use risc0_zkvm::sha::{Sha256, Digest as ShaDigest};
 use serde::Serialize;
 use zkcg_zkvm_host::method_id;
 use bincode;
@@ -38,7 +35,7 @@ impl ProofBackend for ZkVmBackend {
     fn verify(
         &self,
         proof_bytes: &[u8],
-        public_inputs: &PublicInputs,
+        _public_inputs: &PublicInputs,
     ) -> Result<(), ProtocolError> {
         // 1️⃣ Deserialize opaque proof
         let proof: ZkVmProof =

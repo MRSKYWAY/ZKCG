@@ -23,7 +23,7 @@ async fn main() {
     let backend = Box::new(verifier::backend_halo2::Halo2Backend);
 
     #[cfg(not(feature = "zk-halo2"))]
-    let backend = Box::new(verifier::backend_stub::StubBackend::default());
+    let backend = Box::new(zkcg_verifier::backend_stub::StubBackend::default());
 
     let engine = VerifierEngine::new(
         ProtocolState::genesis(),

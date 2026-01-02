@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 
 fn main() {
     // Only build zkVM artifacts when feature is enabled

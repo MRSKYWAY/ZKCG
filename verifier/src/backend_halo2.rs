@@ -7,7 +7,7 @@ use crate::{
 };
 
 use halo2_proofs::{
-    plonk::{verify_proof, VerifyingKey, SingleVerifier, create_proof},
+    plonk::{verify_proof, VerifyingKey, SingleVerifier},
     poly::commitment::Params,
     transcript::{Blake2bRead, Challenge255},
 };

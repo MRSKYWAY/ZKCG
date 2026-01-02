@@ -4,7 +4,7 @@ use common::{
     types::Commitment,
 };
 use crate::backend::ProofBackend;
-use crate::{policy, proof};
+use crate::policy;
 
 pub struct VerifierEngine {
     state: ProtocolState,

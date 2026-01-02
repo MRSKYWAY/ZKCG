@@ -4,8 +4,6 @@ use crate::{
     backend::ProofBackend,
 };
 
-#[cfg(any(feature = "zk-halo2", feature = "zk-vm"))]
-use circuits::score_circuit::ScoreCircuit;
 
 pub struct ProofInput<'a> {
     pub proof_bytes: &'a [u8],
@@ -18,7 +16,7 @@ pub fn verify(
     #[cfg(feature = "zk-halo2")]
     {
         use crate::backend_halo2::Halo2Backend;
-        use halo2curves::bn256::Fr;
+        
 
         let artifacts = circuits::halo2_artifacts::verifier_artifacts();
 

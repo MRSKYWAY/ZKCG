@@ -1,19 +1,18 @@
 #![cfg(all(feature = "zk-halo2", feature = "zk-vm"))]
 
 use crate::{
-    backend::ProofBackend,
     backend_halo2::Halo2Backend,
-    backend_zkvm::ZkVmBackend,
     engine::PublicInputs,
 };
-
+use crate::backend_zkvm::ZkVmBackend;
+use crate::backend::ProofBackend;
 use common::errors::ProtocolError;
 use rand::rngs::OsRng;
 use halo2_proofs::{
     circuit::Value,
     plonk::{create_proof, keygen_pk, keygen_vk},
     poly::commitment::Params,
-    transcript::{Blake2bWrite, Challenge255, TranscriptWrite},
+    transcript::{Blake2bWrite, Challenge255},
 };
 use halo2_proofs::arithmetic::Field;
 use halo2curves::bn256::{Fr, G1Affine};
