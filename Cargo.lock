@@ -3977,7 +3977,6 @@ name = "zkcg-verifier"
 version = "0.1.0"
 dependencies = [
  "bincode",
- "circuits",
  "ff",
  "halo2_proofs",
  "halo2curves",
@@ -3988,7 +3987,6 @@ dependencies = [
  "serde",
  "sha2",
  "zkcg-common",
- "zkcg-zkvm-host",
 ]
 
 [[package]]

@@ -34,12 +34,9 @@ default = []
 zk-halo2 = [
     "halo2_proofs",
     "ff",
-    "circuits",
-    "halo2curves",
+    "halo2curves"
 ]
 zk-vm = [
   "serde",
-  "bincode",
-  "zkcg-zkvm-host",
-  "circuits"
+  "bincode"
   ]
