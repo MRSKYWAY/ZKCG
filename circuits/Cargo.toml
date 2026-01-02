@@ -10,8 +10,8 @@ readme = "../README.md"
 
 homepage = "https://github.com/MRSKYWAY/ZKCG"
 documentation = "https://docs.rs/circuits"
-keywords = ["zk", "circuits", "zero-knowledge", "ZKCG"]
-categories = ["cryptography", "zero-knowledge"]
+keywords = ["zk", "circuits", "zeroknowledge", "ZKCG"]
+categories = ["cryptography", "zeroknowledge"]
 
 [dependencies]
 halo2_proofs = "0.3.2"
