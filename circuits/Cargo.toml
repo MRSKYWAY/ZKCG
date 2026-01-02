@@ -6,7 +6,7 @@ edition = "2024"
 description = "Zero-knowledge circuits for the ZKCG protocol"
 license = "Apache-2.0"
 repository = "https://github.com/MRSKYWAY/ZKCG"
-readme = "README.md"
+readme = "../README.md"
 
 homepage = "https://github.com/MRSKYWAY/ZKCG"
 documentation = "https://docs.rs/circuits"
