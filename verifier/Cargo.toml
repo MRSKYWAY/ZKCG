@@ -2,19 +2,21 @@
 name = "zkcg-verifier"
 version = "0.1.0"
 edition = "2024"
-description = "Public verifier and node for ZKCG – trustless off-chain computation verification"
+description = "Shared types, errors, and utilities for the ZKCG protocol"
 license = "Apache-2.0"
 repository = "https://github.com/MRSKYWAY/zkcg-verifier"
-keywords = ["zk", "zero-knowledge", "verifier", "halo2", "risc0"]
-categories = ["cryptography", "cryptography::cryptocurrencies"]
-readme = "../README.md"
+keywords = ["zk", "zero-knowledge", "protocol", "cryptography"]
+categories = ["cryptography", "data-structures"]
+readme = "README.md"
 publish = true
 
 [dependencies]
-zkcg-common = { path = "../common", version= "0.1.0" }
+zkcg-common = { path = "../common" }
 # Optional ZK dependencies
 halo2_proofs = {version = "0.3.2", optional = true}
 ff = { version = "0.13", optional = true }
+circuits = {version = "0.1.0", path = "../circuits", optional = true }
+zkcg-zkvm-host = { path = "../zkvm/host", optional = true, features = ["zk-vm"] }
 serde = { version = "1", features = ["derive"], optional = true }
 bincode = { version = "1", optional = true }
 risc0-zkp = "3"
@@ -28,15 +30,19 @@ rand = "0.8"
 [dev-dependencies]
 rand = "0.8"
 halo2curves = "0.6"
+criterion = { version = "0.5", features = ["html_reports"] }
 
 [features]
 default = []
 zk-halo2 = [
     "halo2_proofs",
     "ff",
-    "halo2curves"
+    "circuits",
+    "halo2curves",
 ]
 zk-vm = [
   "serde",
-  "bincode"
+  "bincode",
+  "zkcg-zkvm-host",
+  "circuits"
   ]

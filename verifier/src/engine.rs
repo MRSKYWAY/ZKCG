@@ -56,7 +56,7 @@ impl VerifierEngine {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PublicInputs {
     pub threshold: u64,
     pub old_state_root: [u8; 32],
